@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"hanbo1990.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"MNU53WUW1V","apiKey":"239165555750ea695f90c2740b55962e","indexName":"bo_blog","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="This page shows how to use sections to do initialization. The idea is simple, store function pointers in sections and call them by accessing the section address. This approach is commonly used in Linu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="use section to manage init">
+<meta property="og:url" content="https://hanbo1990.com/2020/10/16/use-section-to-manage-init/index.html">
+<meta property="og:site_name" content="tech memory">
+<meta property="og:description" content="This page shows how to use sections to do initialization. The idea is simple, store function pointers in sections and call them by accessing the section address. This approach is commonly used in Linu">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hanbo1990.com/images/ccpp/session_c_bad_dep.png">
+<meta property="og:image" content="https://hanbo1990.com/images/ccpp/session_c_better_dep.png">
+<meta property="og:image" content="https://hanbo1990.com/images/ccpp/session_c_good_dep.png">
+<meta property="article:published_time" content="2020-10-16T16:40:25.000Z">
+<meta property="article:modified_time" content="2020-10-16T15:14:22.837Z">
+<meta property="article:author" content="Bo Han">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hanbo1990.com/images/ccpp/session_c_bad_dep.png">
+
+<link rel="canonical" href="https://hanbo1990.com/2020/10/16/use-section-to-manage-init/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>use section to manage init | tech memory</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">tech memory</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-c/c++">
+
+    <a href="/categories/ccpp" rel="section"><i class="fa fa-code fa-fw"></i>C/C++</a>
+
+  </li>
+        <li class="menu-item menu-item-linux">
+
+    <a href="/categories/linux/" rel="section"><i class="fab fa-linux fa-fw"></i>Linux</a>
+
+  </li>
+        <li class="menu-item menu-item-other">
+
+    <a href="/categories/other" rel="section"><i class="fab fa-mix fa-fw"></i>Other</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://hanbo1990.com/2020/10/16/use-section-to-manage-init/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Bo Han">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tech memory">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          use section to manage init
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-10-16 18:40:25 / Modified: 17:14:22" itemprop="dateCreated datePublished" datetime="2020-10-16T18:40:25+02:00">2020-10-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ccpp/" itemprop="url" rel="index"><span itemprop="name">ccpp</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>This page shows how to use sections to do initialization.</p>
+<p>The idea is simple, store function pointers in sections and call them by accessing the section address. This approach is commonly used in Linux (<code>module_init</code> as an example) and also RTOS where multiple levels of init are required.</p>
+<p>The example below is built with gcc and running on a Linux machine. The theory behind is the same in embedded devices but the best way to implement it can be a bit different due to the linker you are using.</p>
+<a id="more"></a>
+
+<h2 id="Problems-in-example"><a href="#Problems-in-example" class="headerlink" title="Problems in example"></a>Problems in example</h2><p><img src="/images/ccpp/session_c_bad_dep.png" alt="problem of include"></p>
+<p>The above example is quite commonly used. We get a list of modules with the same interface, and the module manager is created to init the modules. And module manager is inited by the main function.</p>
+<p>So every time a new module is created or removed, the module manager needs to be updated or we need to use <code>ifdef</code> to exclude some of the modules from the build. This dependency makes the code hard to maintain. So is it possible that the module registers itself to the module manager? </p>
+<p><img src="/images/ccpp/session_c_better_dep.png" alt="better of include"></p>
+<p>The idea is using section.</p>
+<h2 id="Register-functions-to-Section"><a href="#Register-functions-to-Section" class="headerlink" title="Register functions to Section"></a>Register functions to Section</h2><p>To get some background info, please read <a href="https://www.keil.com/support/man/docs/armcc/armcc_chr1359124982450.htm" target="_blank" rel="noopener">sections</a>.</p>
+<p>The core of the function is the macros below.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(*<span class="keyword">init_fn_t</span>)</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> USED __attribute__((used))</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SECTION(x) __attribute__((section(x)))</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INIT_EXPORT(fn, level)  \</span></span><br><span class="line">    USED <span class="keyword">const</span> <span class="keyword">init_fn_t</span> __example_init_#<span class="meta">#fn SECTION(<span class="meta-string">"exi_fn"</span> level) = fn</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INIT_LEVEL_0_EXPORT(fn) INIT_EXPORT(fn, <span class="meta-string">"0"</span>)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INIT_LEVEL_1_EXPORT(fn) INIT_EXPORT(fn, <span class="meta-string">"1"</span>)</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>USED</code> informs the compiler that a static variable is to be retained in the object file, even if it is unreferenced.</li>
+<li><code>SECTION(x)</code> defines a section with name x.</li>
+<li><code>INIT_EXPORT</code> helps to define the function with level in the section.</li>
+<li><code>INIT_LEVEL_0_EXPORT</code> and <code>INIT_LEVEL_1_EXPORT</code> provide an easier interface to show function call stages.</li>
+</ul>
+<p>Let’s say module A wants to register itself to the module manager with level 0, below code is everything required. </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">module_a_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Hello from module A with init level 0\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">INIT_LEVEL_0_EXPORT(module_a_init);</span><br></pre></td></tr></table></figure>
+
+<p>After the compilation of the code, the function pointer module_a_init will exist in section <code>exi_fn</code>.</p>
+<h2 id="Find-start-and-stop-of-your-section"><a href="#Find-start-and-stop-of-your-section" class="headerlink" title="Find start and stop of your section"></a>Find start and stop of your section</h2><p>Once we have the pointers available, the next step is to read out and execute the pointers. Since all the functions have the same type, it’s easy to transform the function address of functions. But we still have 1 problem here:</p>
+<p><strong>How to get the start and end address of a section?</strong></p>
+<h3 id="Normal-case-use-generated-symbols"><a href="#Normal-case-use-generated-symbols" class="headerlink" title="Normal case (use generated symbols)"></a>Normal case (use generated symbols)</h3><p>In the test environment, the start and stop of the section can be accessed with <code>__start_SECTION</code> and <code>__stop_SECTION</code> where <code>SECTION</code> is the name we just created. The section name cannot start with <code>.</code> in this case.</p>
+<p>If in the worst case, it does not work?</p>
+<h3 id="Use-Linker-script-to-manually-define-them"><a href="#Use-Linker-script-to-manually-define-them" class="headerlink" title="Use Linker script to manually define them"></a>Use Linker script to manually define them</h3><p>Linker script provides you more control of the memory layout of your sections. You can define symbols like <code>_init_start</code> and <code>_init_end</code> around your session. By doing so, you can put all stages of init together in one for loop (you will find how useful it is later). The disadvantage is you need to setup linker script for each platform which normally is fine.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ld --verbose</span><br><span class="line"></span><br><span class="line"><span class="comment"># copy the script between into an lds file</span></span><br><span class="line"><span class="comment"># ==================================================</span></span><br><span class="line"><span class="comment"># and add below before bss section to get start and stop of section:</span></span><br><span class="line"><span class="comment"># _init_start = .;</span></span><br><span class="line"><span class="comment"># .myinit : &#123; *(.myinit) &#125;</span></span><br><span class="line"><span class="comment"># _init_end = .;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Call-functions-for-each-stage"><a href="#Call-functions-for-each-stage" class="headerlink" title="Call functions for each stage"></a>Call functions for each stage</h2><p>The code below shows how to run the init for a certain stage. All the init function inside stage 0 and stage 1 will be called.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> START_FUNC_LEVEL(X) __start_exi_fn##X</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> STOP_FUN_LEVEL(X)    __stop_exi_fn##X</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">init_fn_t</span> <span class="title">START_FUNC_LEVEL</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">init_fn_t</span> <span class="title">STOP_FUN_LEVEL</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">init_fn_t</span> <span class="title">START_FUNC_LEVEL</span><span class="params">(<span class="number">1</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">init_fn_t</span> <span class="title">STOP_FUN_LEVEL</span><span class="params">(<span class="number">1</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">level_0_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">init_fn_t</span> *fn_ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (fn_ptr = &amp;START_FUNC_LEVEL(<span class="number">0</span>); fn_ptr &lt; &amp;STOP_FUN_LEVEL(<span class="number">0</span>); fn_ptr++)</span><br><span class="line">    &#123;</span><br><span class="line">        (*fn_ptr)();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">level_1_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">init_fn_t</span> *fn_ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (fn_ptr = &amp;START_FUNC_LEVEL(<span class="number">1</span>); fn_ptr &lt; &amp;STOP_FUN_LEVEL(<span class="number">1</span>); fn_ptr++)</span><br><span class="line">    &#123;</span><br><span class="line">        (*fn_ptr)();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">moduleManager_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    (<span class="keyword">void</span>) level_0_init();</span><br><span class="line">    (<span class="keyword">void</span>) level_1_init();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="concludision"><a href="#concludision" class="headerlink" title="concludision"></a>concludision</h2><p>With the approach above, we can easily remove dependencies between different layers. The result provides a better architecture result. But it can only be used when the interface for the layer is the same. Also to avoid unwanted module code to be linked into the final binary, it’s necessary to exclude the module from the build.</p>
+<p><img src="/images/ccpp/session_c_good_dep.png" alt="good of include"></p>
+<p>The code example can be found here.</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/15/set-up-ntp-client/" rel="prev" title="set-up-ntp-client">
+      <i class="fa fa-chevron-left"></i> set-up-ntp-client
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Problems-in-example"><span class="nav-number">1.</span> <span class="nav-text">Problems in example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Register-functions-to-Section"><span class="nav-number">2.</span> <span class="nav-text">Register functions to Section</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Find-start-and-stop-of-your-section"><span class="nav-number">3.</span> <span class="nav-text">Find start and stop of your section</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Normal-case-use-generated-symbols"><span class="nav-number">3.1.</span> <span class="nav-text">Normal case (use generated symbols)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-Linker-script-to-manually-define-them"><span class="nav-number">3.2.</span> <span class="nav-text">Use Linker script to manually define them</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Call-functions-for-each-stage"><span class="nav-number">4.</span> <span class="nav-text">Call functions for each stage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#concludision"><span class="nav-number">5.</span> <span class="nav-text">concludision</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Bo Han</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/hanbo1990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;hanbo1990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hanbo1990@gmail.com" title="E-Mail → mailto:hanbo1990@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/hanbo1990/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;hanbo1990&#x2F;" rel="noopener" target="_blank"><i class="fab fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bo Han</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
