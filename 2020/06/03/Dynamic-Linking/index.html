@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"hanbo1990.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"MNU53WUW1V","apiKey":"9683ae70dc183856fd122d6ff742e808","indexName":"bo_blog","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="As we introduced in Static and Dynamic libraries, the benefits of using the dynamic library are:  Save space. Simplify the development and release process.  Dynamic Linker is in charge of linking dyna">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dynamic Linking">
+<meta property="og:url" content="https://hanbo1990.com/2020/06/03/Dynamic-Linking/index.html">
+<meta property="og:site_name" content="Bo Han&#39;s Blog">
+<meta property="og:description" content="As we introduced in Static and Dynamic libraries, the benefits of using the dynamic library are:  Save space. Simplify the development and release process.  Dynamic Linker is in charge of linking dyna">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-06-03T16:45:55.000Z">
+<meta property="article:modified_time" content="2020-09-08T20:07:41.036Z">
+<meta property="article:author" content="Bo Han">
+<meta property="article:tag" content="Linker">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://hanbo1990.com/2020/06/03/Dynamic-Linking/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Dynamic Linking | Bo Han's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Bo Han's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://hanbo1990.com/2020/06/03/Dynamic-Linking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Bo Han">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Bo Han's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Dynamic Linking
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-06-03 18:45:55" itemprop="dateCreated datePublished" datetime="2020-06-03T18:45:55+02:00">2020-06-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-09-08 22:07:41" itemprop="dateModified" datetime="2020-09-08T22:07:41+02:00">2020-09-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/build-system/" itemprop="url" rel="index"><span itemprop="name">build system</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>As we introduced in Static and Dynamic libraries, the benefits of using the dynamic library are:</p>
+<ol>
+<li>Save space.</li>
+<li>Simplify the development and release process.</li>
+</ol>
+<p>Dynamic Linker is in charge of linking dynamic libraries into the application. What happens during the link process?</p>
+<a id="more"></a>
+
+<p>Assume we have ‘program1.o’ and ‘program2.o’ and ‘lib.so’. When we want to execute program1, ‘program1.o’ will be loaded. When the system detects ‘lib.so’ is required (program1.o depends on lib.so), the system will load lib.so as well. If ‘program1.o’ and ‘lib.so’ also depend on other files, system will also load them into memory. After all dependencies are resolved, system enters the linking process. The process is quite similar to static linking, including <strong>symbol resolution</strong>, <strong>relocation</strong> ..etc. In the end, the system will give control to the entry of ‘program1.o’, program1 starts. If now we need to execute program2 which also depends on ‘lib.so’, system only need to load ‘program2.o’ without loading ‘lib.so’. Because there is already a copy of ‘lib.so’ in the memory, the system only needs to link ‘program2.o’ with ‘lib.so’.</p>
+<p>This behavior does not only save space but also reduce the enter/exit of a certain physical page, make the CPU cache process more accurate because all code and data access happen on the same shared module. It also makes the upgrading process easier, we only need to replace the shared object instead of link all target files again. The dynamic library also supports Explicit Runtime Linking, which can be used to make plug-ins.</p>
+<p>The dynamic library also has its problems. The most famous one is <strong>DLL Hell</strong>, when the shared module is upgraded to a newer version with major interface change, the original program is not able to execute. In this way, versioning becomes quite important. You can read more about versioning <a href="http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html" target="_blank" rel="noopener">here</a> or <a href="https://akkadia.org/drepper/dsohowto.pdf" target="_blank" rel="noopener">3.3 ABI versioning</a>.</p>
+<h2 id="Start-with-Example"><a href="#Start-with-Example" class="headerlink" title="Start with Example"></a>Start with Example</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* program1.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"lib.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    foo(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* program2.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"lib.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    foo(<span class="number">2</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* lib.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"lib.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> i)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Print from lib.so %d\n"</span>, i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* lib.h */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> LIB_H</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LIB_H</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> i)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>Now let’s build a shared library using <code>gcc -fPIC -shared -o lib.so lib.c</code>. <code>&#39;-shared&#39;</code> is used to generate a shared object. <code>&#39;-fPIC&#39;</code> will be introduced later. Now we get a shared library called ‘lib.so’. We can build an application with shared library.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -o program1 program1.c ./lib.so</span><br><span class="line">$ gcc -o program2 program2.c ./lib.so</span><br></pre></td></tr></table></figure>
+
+<p>This process is a bit different from static linking. When program1.o is linked into program1, lib.so is not linked into the executable. The only target file is program1.o (also some c runtime library, ignore them here). But from the command, we can see the lib.so is also part of the link process, what happens here?</p>
+<p>When ‘program1.c’ is compiled into ‘program1.o’, the compiler does not know the address of ‘foo()’, when the linker needs to create the executable, it must determine the type of foo(). If foo() is a function defined in another static module, the linker will relocate the function in program1.o according to the rules in static linking. If foo() is a function defined in other shared object, the linker will mark the symbol to a dynamic linking symbol, and postpone the relocation to dynamic linking. The lib.so stores all symbol information, when the link happens, the linker knows foo() is a dynamic symbol in lib.so. With this information, the linker can treat the reference of foo() as a reference to the dynamic symbol.</p>
+<h3 id="Address-space-layout-of-the-application"><a href="#Address-space-layout-of-the-application" class="headerlink" title="Address space layout of the application"></a>Address space layout of the application</h3><p>When the application is loaded, both the executable itself and the shared objects it depends on will be mapped to the memory. Let’s see what does the address space layout looks like for program1. To keep the program running, we need to add a sleep function to the code.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* lib.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"lib.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span> i)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Print from lib.so %d\n"</span>, i);</span><br><span class="line">    sleep(<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Then we can see the virtual address space layout.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ ./program1 &amp;</span><br><span class="line">[1] 28752</span><br><span class="line">$ Print from lib.so 1</span><br><span class="line">$ cat /proc/28752/maps</span><br><span class="line">56553c729000-56553c72a000 r-xp 00000000 08:01 1183182                    ./program1</span><br><span class="line">56553c929000-56553c92a000 r--p 00000000 08:01 1183182                    ./program1</span><br><span class="line">56553c92a000-56553c92b000 rw-p 00001000 08:01 1183182                    ./program1</span><br><span class="line">56553e7e8000-56553e809000 rw-p 00000000 00:00 0                          [heap]</span><br><span class="line">7febb79c7000-7febb7bae000 r-xp 00000000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7febb7bae000-7febb7dae000 ---p 001e7000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7febb7dae000-7febb7db2000 r--p 001e7000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7febb7db2000-7febb7db4000 rw-p 001eb000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7febb7db4000-7febb7db8000 rw-p 00000000 00:00 0 </span><br><span class="line">7febb7db8000-7febb7db9000 r-xp 00000000 08:01 1183181                    ./lib.so</span><br><span class="line">7febb7db9000-7febb7fb8000 ---p 00001000 08:01 1183181                    ./lib.so</span><br><span class="line">7febb7fb8000-7febb7fb9000 r--p 00000000 08:01 1183181                    ./lib.so</span><br><span class="line">7febb7fb9000-7febb7fba000 rw-p 00001000 08:01 1183181                    ./lib.so</span><br><span class="line">7febb7fba000-7febb7fe1000 r-xp 00000000 08:01 137569                     /lib/x86_64-linux-gnu/ld-2.27.so</span><br><span class="line">7febb81c2000-7febb81c5000 rw-p 00000000 00:00 0 </span><br><span class="line">7febb81df000-7febb81e1000 rw-p 00000000 00:00 0 </span><br><span class="line">7febb81e1000-7febb81e2000 r--p 00027000 08:01 137569                     /lib/x86_64-linux-gnu/ld-2.27.so</span><br><span class="line">7febb81e2000-7febb81e3000 rw-p 00028000 08:01 137569                     /lib/x86_64-linux-gnu/ld-2.27.so</span><br><span class="line">7febb81e3000-7febb81e4000 rw-p 00000000 00:00 0 </span><br><span class="line">7ffe6b34d000-7ffe6b36e000 rw-p 00000000 00:00 0                          [stack]</span><br><span class="line">7ffe6b3bb000-7ffe6b3be000 r--p 00000000 00:00 0                          [vvar]</span><br><span class="line">7ffe6b3be000-7ffe6b3bf000 r-xp 00000000 00:00 0                          [vdso]</span><br><span class="line">ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]</span><br></pre></td></tr></table></figure>
+
+<p>lib.so and program1 are mapped to the VMA with different addresses. We can also find the c runtime library, <code>libc</code>. Important to mention here is the <code>ld-2.27.so</code>, it is the dynamic linker in Linux. Before the system start to execute program1, the dynamic linker will do the dynamic linking, after that, program1 can start.</p>
+<p>Let’s check the loading attributes of lib.so.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">$ readelf -l lib.so</span><br><span class="line"></span><br><span class="line">Elf file <span class="built_in">type</span> is DYN (Shared object file)</span><br><span class="line">Entry point 0x580</span><br><span class="line">There are 7 program headers, starting at offset 64</span><br><span class="line"></span><br><span class="line">Program Headers:</span><br><span class="line">  Type           Offset             VirtAddr           PhysAddr</span><br><span class="line">                 FileSiz            MemSiz              Flags  Align</span><br><span class="line">  LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000</span><br><span class="line">                 0x0000000000000754 0x0000000000000754  R E    0x200000</span><br><span class="line">  LOAD           0x0000000000000e10 0x0000000000200e10 0x0000000000200e10</span><br><span class="line">                 0x0000000000000220 0x0000000000000228  RW     0x200000</span><br><span class="line">  DYNAMIC        0x0000000000000e20 0x0000000000200e20 0x0000000000200e20</span><br><span class="line">                 0x00000000000001c0 0x00000000000001c0  RW     0x8</span><br><span class="line">  NOTE           0x00000000000001c8 0x00000000000001c8 0x00000000000001c8</span><br><span class="line">                 0x0000000000000024 0x0000000000000024  R      0x4</span><br><span class="line">  GNU_EH_FRAME   0x00000000000006b0 0x00000000000006b0 0x00000000000006b0</span><br><span class="line">                 0x0000000000000024 0x0000000000000024  R      0x4</span><br><span class="line">  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000</span><br><span class="line">                 0x0000000000000000 0x0000000000000000  RW     0x10</span><br><span class="line">  GNU_RELRO      0x0000000000000e10 0x0000000000200e10 0x0000000000200e10</span><br><span class="line">                 0x00000000000001f0 0x00000000000001f0  R      0x1</span><br><span class="line"></span><br><span class="line"> Section to Segment mapping:</span><br><span class="line">  Segment Sections...</span><br><span class="line">   00     .note.gnu.build-id .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt .init .plt .plt.got .text .fini .rodata .eh_frame_hdr .eh_frame </span><br><span class="line">   01     .init_array .fini_array .dynamic .got .got.plt .data .bss </span><br><span class="line">   02     .dynamic </span><br><span class="line">   03     .note.gnu.build-id </span><br><span class="line">   04     .eh_frame_hdr </span><br><span class="line">   05     </span><br><span class="line">   06     .init_array .fini_array .dynamic .got</span><br></pre></td></tr></table></figure>
+
+<p>It is almost the same as the normal application. Important to notice here is the load address is 0x0000000000000000, which is different from the actual load address 7febb7db8000. From this, we can assume, the final load address of a shared object is not determined during compile time. It happens during the load time, the system will assign a virtual address space big enough based on current system memory usage. Let’s check the assumption in the next sections.</p>
+<h2 id="Position-independent-Code"><a href="#Position-independent-Code" class="headerlink" title="Position independent Code"></a>Position independent Code</h2><h3 id="Load-Time-Relocation"><a href="#Load-Time-Relocation" class="headerlink" title="Load Time Relocation"></a>Load Time Relocation</h3><p>If the address of the dynamic library is fixed, then all references to the dynamic library will be static. In this case, a change to the dynamic library will introduce the rebuild of the applications using it. It’s not what we want. Position-independent Code is required to solve the problem. Then the question is:</p>
+<p>How can we determine the address of it? We can get the address when the library is loaded.</p>
+<p>Load Time Relocation solves the problem of having absolute addresses in the dynamic object. When we build the shared library in the example, “-shared” and “-fPIC” are used. If we only use “-shared”, the object we created is using Load Time Relocation.</p>
+<h3 id="fPIC"><a href="#fPIC" class="headerlink" title="fPIC"></a>fPIC</h3><p>Load Time Relocation does not cover the case we want to share the shared object between processes because each process will copy a shared object. In this case, the advantage of saving memory does not exist. PIC (Position Independent Code) solves this problem. It separates the part of code needs relocation from text and put them together with data. In this way, text can keep the same, and data can be copied to different processes.</p>
+<p>Is it possible to do this? </p>
+<p>Let’s look at four different reference methods we may encounter:</p>
+<ol>
+<li>Function reference and jump inside the shared object.</li>
+<li>Inner module data access. Like the global variable and static variable.</li>
+<li>Inter module data access. Like the reference to a global variable defined in other modules.</li>
+<li>Function reference and jump to other modules.</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* bar.c */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> a;</span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">int</span> b;</span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">ext</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    a = <span class="number">1</span>;  <span class="comment">// Type 2: Inner module data access</span></span><br><span class="line">    b = <span class="number">2</span>;  <span class="comment">// Type 3: Inter module data access</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">bar</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    foo(); <span class="comment">// Type 1: Inner module call</span></span><br><span class="line">    ext(); <span class="comment">// Type 4: Inter module call</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>When the compiler compiles this file, it cannot determine if b and ext() are inside the module (shared library) or not, so it will treat them as symbols outside the library.</p>
+<h4 id="Inter-module-call"><a href="#Inter-module-call" class="headerlink" title="Inter module call"></a>Inter module call</h4><p>This is the easiest one, bar() and foo() are inside the same module, so bar knows the relative address of foo(). A jump based on relative addressing will work, there is no need to do address relocation. But this way will introduce a problem called <strong>Global Symbol Interposition</strong>. We will discuss it later. Let’s assume the foo is static here :).</p>
+<h4 id="Inner-module-data-access"><a href="#Inner-module-data-access" class="headerlink" title="Inner module data access"></a>Inner module data access</h4><p>The assembly command cannot have an absolute address, the only way here is relative addressing. Each module has several sections, and the relative locations of the sections are normally fixed. In this way, the offset can be used when the code wants to access certain data. You can look into the assembly code to check how it’s done.</p>
+<h4 id="Inter-module-data-access"><a href="#Inter-module-data-access" class="headerlink" title="Inter module data access"></a>Inter module data access</h4><p>Inter module data access is a bit more complex, the address of the data can only be fixed during load time. To avoid the code refers to a fixed address, ELF creates a pointer table for these variables in the data section called GOT (Global offset table). When the code wants to use the variable, it will go to GOT to find the address of the variable. </p>
+<p>During compile-time, GOT will be generated, it has a fixed relative address to the text. Each variable also has its fixed offset inside the GOT, in this case, the code can locate the variable.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ objdump -x -s -d bar.so</span><br><span class="line">...</span><br><span class="line"> 16 .got          00000028  0000000000200fd8  0000000000200fd8  00000fd8  2**3</span><br><span class="line">                  CONTENTS, ALLOC, LOAD, DATA</span><br><span class="line">...</span><br><span class="line">Contents of section .got:</span><br><span class="line"> 200fd8 00000000 00000000 00000000 00000000  ................</span><br><span class="line"> 200fe8 00000000 00000000 00000000 00000000  ................</span><br><span class="line"> 200ff8 00000000 00000000                    ........</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">$ objdump -R bar.so</span><br><span class="line"></span><br><span class="line">DYNAMIC RELOCATION RECORDS</span><br><span class="line">OFFSET           TYPE              VALUE </span><br><span class="line">...</span><br><span class="line">0000000000200fd8 R_X86_64_GLOB_DAT  b</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>We can see here ‘.got’ table is located at offset 00000fd8 at VMA 0000000000200fd8. Variable b is at offset 0 of ‘.got’, and the table is empty at this moment.</p>
+<h4 id="Inter-module-call-1"><a href="#Inter-module-call-1" class="headerlink" title="Inter module call"></a>Inter module call</h4><p>This almost same as the inter-module data access. In the relocation records, we can find the relocation type is different from the data.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">0000000000201018 R_X86_64_JUMP_SLOT  ext</span><br><span class="line">0000000000201020 R_X86_64_JUMP_SLOT  foo</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h4 id="PIC-summary"><a href="#PIC-summary" class="headerlink" title="PIC summary"></a>PIC summary</h4><table>
+<thead>
+<tr>
+<th></th>
+<th>function reference &amp; jump</th>
+<th>Data Access</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Inner module</td>
+<td>Relative jump and call</td>
+<td>Relative access</td>
+</tr>
+<tr>
+<td>Inter module</td>
+<td>Indirect jump and call (GOT)</td>
+<td>Indirect access (GOT)</td>
+</tr>
+</tbody></table>
+<h4 id="Global-Variable-in-Shared-Object"><a href="#Global-Variable-in-Shared-Object" class="headerlink" title="Global Variable in Shared Object"></a>Global Variable in Shared Object</h4><p>We haven’t discussed the global variable defined in the shared object. What if the application also defines the same global variable?</p>
+<p>Let’s think about this piece of code:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* foo.c */</span></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">int</span> global;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">foo</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    global = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>When the compiler compiles this file into “.o”, it cannot determine if ‘global’ is in the same module or another shared object. If this foo.c is part of the executable, because the executable is not address-irrelevant code, the PIC method cannot be used here. In this way, the ‘global’ here will be treated as normal data with assembly code <code>movl $0x1, xxxxxx</code>. xxxxxx is the address of ‘global’. Because the executable does not have Load time relocation, the address of global must be fixed during the link process. To finish the link process, the linker will create a copy of global in the BSS section. Then the problem is obvious, global is defined in a shared object, but it has a copy in BSS.</p>
+<p>Multiple copies of the same data are not allowed. There is only one solution, all code piece using this variable will point to the copy in the executable. When the shared library is compiled, all global variables will be treated as global variables defined in other modules. Any access to them must go from GOT. If the global variable has a copy in the executable when the shared object is loaded, the dynamic linker will force the GOT point to the copy in the executable. If the variable is initialized in the shared library, dynamic linker also needs to apply this initialization to the copy in the executable. If executable does not have a copy in executable, GOT will point to the copy inside the shared library.</p>
+<p>Question: Assume lib.so defines a global variable G and processes A and B are both using lib.so. When A change G, will B get affected?</p>
+<p>The answer is no. Because both A and B hold a copy of G. Global variable defined in the shared object can be treated as a global variable defined in the executable. But the answer is yes when A and B are threads because they are sharing the same copy of lib.so data.</p>
+<h3 id="Lazy-binding-PLT"><a href="#Lazy-binding-PLT" class="headerlink" title="Lazy binding (PLT)"></a>Lazy binding (PLT)</h3><p>Dynamic linking has many advantages compared to static linking with the cost of performance reduction. The performance reduction is around 1~5 percent. One reason is accessing global and static variables must be done by indirect addressing via GOT. Another reason is the dynamic linking process happens when the system is loading the executable.</p>
+<p>Lazy binding is introduced to improve system performance. The idea is, binding of a function(symbol lookup, relocation..) only happens when the function is first-time used.</p>
+<p>ELF is using PLT(Procedure Linkage Table) to achieve this. To get to a certain function, we need to know the actual target location. In the example, if we want to bind to foo() in lib.so, we need to provide the module name and function name. In our example, they are lib.so (module name) and foo (function name). In Glibc, <a href="http://users.eecs.northwestern.edu/~kch479/docs/notes/linking.html" target="_blank" rel="noopener">_dl_runtime_resolve()</a> is the lookup function. We only focus on concept in this part, more detail can be found <a href="https://refspecs.linuxfoundation.org/ELF/zSeries/lzsabi0_zSeries/x2251.html" target="_blank" rel="noopener">here</a>.</p>
+<h3 id="Related-Structures"><a href="#Related-Structures" class="headerlink" title="Related Structures"></a>Related Structures</h3><h4 id="“-interp”-section"><a href="#“-interp”-section" class="headerlink" title="“.interp” section"></a>“.interp” section</h4><p>This section decides the path of the dynamic linker to be used later.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ objdump -s program1</span><br><span class="line">...</span><br><span class="line">Contents of section .interp:</span><br><span class="line"> 0238 2f6c6962 36342f6c 642d6c69 6e75782d  /lib64/ld-linux-</span><br><span class="line"> 0248 7838362d 36342e73 6f2e3200           x86-64.so.2. </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">$ readelf -l program1 |grep interpreter</span><br><span class="line">      [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]</span><br></pre></td></tr></table></figure>
+
+<p>We can see <code>/lib64/ld-linux-x86-64.so.2</code> will be used to do dynamic linking.</p>
+<h4 id="“-dynamic”-section"><a href="#“-dynamic”-section" class="headerlink" title="“.dynamic” section"></a>“.dynamic” section</h4><p>Dynamic section entries give information to the dynamic linker like:</p>
+<ul>
+<li>Related shared objects</li>
+<li>Location of the dynamic symbol table</li>
+<li>Location of dynamic relocation records</li>
+<li>etc</li>
+</ul>
+<p>We can use <code>readelf -d xx.so</code> to read the dynamic table. Linux also gives another way to check the dependencies of the shared library.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ ldd program1</span><br><span class="line">        linux-vdso.so.1 (0x00007ffd6ca4c000)</span><br><span class="line">        ./lib.so (0x00007f5910c21000)</span><br><span class="line">        libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6 (0x00007f5910830000)</span><br><span class="line">        /lib64/ld-linux-x86-64.so.2 (0x00007f5911025000)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Dynamic-symbol-Table"><a href="#Dynamic-symbol-Table" class="headerlink" title="Dynamic symbol Table"></a>Dynamic symbol Table</h4><p>Similar to static linking, dynamic linking also need a symbol table (“.dynsym” section). </p>
+<p>The symbol table is also quite similar to the one in static linking. In our example, program1 references to the function foo() in lib.so. We can say foo() is the import function of program1. When we talk about lib.so, foo() is its export function. This import and export are represented in this section.</p>
+<p>Similar to ‘.symtab’, the ‘.dynsym’ also has some support tables, like ‘.dynstr’(Dynamic String Table), ‘.hash’ (to find symbols faster). </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ readelf -sD lib.so</span><br><span class="line"></span><br><span class="line">Symbol table of `.gnu.hash<span class="string">' for image:</span></span><br><span class="line"><span class="string">  Num Buc:    Value          Size   Type   Bind Vis      Ndx Name</span></span><br><span class="line"><span class="string">    7   0: 0000000000201030     0 NOTYPE  GLOBAL DEFAULT  22 _edata</span></span><br><span class="line"><span class="string">    8   0: 000000000000065a    51 FUNC    GLOBAL DEFAULT  12 foo</span></span><br><span class="line"><span class="string">    9   0: 0000000000201038     0 NOTYPE  GLOBAL DEFAULT  23 _end</span></span><br><span class="line"><span class="string">   10   1: 0000000000201030     0 NOTYPE  GLOBAL DEFAULT  23 __bss_start</span></span><br><span class="line"><span class="string">   11   1: 0000000000000520     0 FUNC    GLOBAL DEFAULT   9 _init</span></span><br><span class="line"><span class="string">   12   2: 0000000000000690     0 FUNC    GLOBAL DEFAULT  13 _fini</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Relocation-Table"><a href="#Relocation-Table" class="headerlink" title="Relocation Table"></a>Relocation Table</h4><p>Relocation happens in the load time. Similar to static linking, dynamic linking also have relocation table called ‘.rela.dyn’ and ‘.rela.plt’. ‘.rela.dyn’ contains relocation for data, the targets it relocates exist in ‘.got’ and ‘.data’. ‘.rela.plt’ is relocation for function calls, its targets are in ‘.got.plt’. We can use readelf to read these tables.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ readelf -r lib.so</span><br><span class="line"></span><br><span class="line">Relocation section <span class="string">'.rela.dyn'</span> at offset 0x448 contains 7 entries:</span><br><span class="line">  Offset          Info           Type           Sym. Value    Sym. Name + Addend</span><br><span class="line">000000200e10  000000000008 R_X86_64_RELATIVE                    650</span><br><span class="line">000000200e18  000000000008 R_X86_64_RELATIVE                    610</span><br><span class="line">000000201028  000000000008 R_X86_64_RELATIVE                    201028</span><br><span class="line">000000200fe0  000100000006 R_X86_64_GLOB_DAT 0000000000000000 _ITM_deregisterTMClone + 0</span><br><span class="line">000000200fe8  000300000006 R_X86_64_GLOB_DAT 0000000000000000 __gmon_start__ + 0</span><br><span class="line">000000200ff0  000400000006 R_X86_64_GLOB_DAT 0000000000000000 _ITM_registerTMCloneTa + 0</span><br><span class="line">000000200ff8  000600000006 R_X86_64_GLOB_DAT 0000000000000000 __cxa_finalize@GLIBC_2.2.5 + 0</span><br><span class="line"></span><br><span class="line">Relocation section <span class="string">'.rela.plt'</span> at offset 0x4f0 contains 2 entries:</span><br><span class="line">  Offset          Info           Type           Sym. Value    Sym. Name + Addend</span><br><span class="line">000000201018  000200000007 R_X86_64_JUMP_SLO 0000000000000000 <span class="built_in">printf</span>@GLIBC_2.2.5 + 0</span><br><span class="line">000000201020  000500000007 R_X86_64_JUMP_SLO 0000000000000000 sleep@GLIBC_2.2.5 + 0</span><br></pre></td></tr></table></figure>
+
+<p>We won’t go into detail about how dynamic does relocation here. You can search for the types to find how the linker deals with address calculation.</p>
+<h2 id="Steps-in-dynamic-linking"><a href="#Steps-in-dynamic-linking" class="headerlink" title="Steps in dynamic linking"></a>Steps in dynamic linking</h2><h3 id="Bootstrap"><a href="#Bootstrap" class="headerlink" title="Bootstrap"></a>Bootstrap</h3><p>The dynamic linker is a shared object itself. It cannot depend on other modules to do relocation because the relocation is done by the dynamic linker. In this way, the linker itself should have a tiny code to start itself, this piece of code is called <strong>Bootstrap</strong>.</p>
+<p>We can find the related interesting comment at the end of bootstrap in elf/rtld.c:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Now life is sane; we can call functions and access global data.</span></span><br><span class="line"><span class="comment">   Set up to use the operating system facilities, and find out from</span></span><br><span class="line"><span class="comment">   the operating system's program loader where to find the program</span></span><br><span class="line"><span class="comment">   header table in core.  Put the rest of _dl_start into a separate</span></span><br><span class="line"><span class="comment">   function, that way the compiler cannot put accesses to the GOT</span></span><br><span class="line"><span class="comment">   before ELF_DYNAMIC_RELOCATE.  */</span></span><br></pre></td></tr></table></figure>
+
+<p>Now life is sane :).</p>
+<h3 id="Load-shared-objects"><a href="#Load-shared-objects" class="headerlink" title="Load shared objects"></a>Load shared objects</h3><p>After bootstrap, the dynamic linker can combine the symbol table of executable, dynamic linker into one <strong>global symbol table</strong>. The dynamic linker will then start to search for the shared objects defined in ‘.dynamic’ section. After this, the dynamic linker will list all names of shared objects required for the application and then put them together. It will go through these shared objects one by one, load the ELF header and ‘.dynamic’ section, and map the corresponding test and data section into virtual memory space. </p>
+<p>When a new shared object is loaded, its symbol table will also be combined into the global symbol table. After all shared objects are loaded, the global symbol table contains all symbols for dynamic linking.</p>
+<h4 id="symbol-priority"><a href="#symbol-priority" class="headerlink" title="symbol priority"></a>symbol priority</h4><p>When symbols are loaded, what will happen if two modules define the same symbol? Assume we have a1.c, a2.c, b1.c, b2.c:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* a1.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">a</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"a1.c\n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* a2.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">a</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"a2.c\n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* b1.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">b1</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    a();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* b2.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">b2</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    a();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Both ax.c have same function a(). Both bx.c are calling function a(). Now let’s set the dependencies, let b1.so depends on a1.so, let b2.so depends on a2.so.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -fPIC -shared a1.c -o a1.so</span><br><span class="line">$ gcc -fPIC -shared a2.c -o a2.so</span><br><span class="line">$ gcc -fPIC -shared b1.c ./a1.so -o b1.so</span><br><span class="line">$ gcc -fPIC -shared b2.c ./a2.so -o b2.so</span><br><span class="line"></span><br><span class="line">$ ldd b1.so</span><br><span class="line">        linux-vdso.so.1 (0x00007ffdd0ba2000)</span><br><span class="line">        a1.so =&gt; not found</span><br><span class="line"></span><br><span class="line">$ ldd b2.so</span><br><span class="line">        linux-vdso.so.1 (0x00007fffef5a2000)</span><br><span class="line">        a2.so =&gt; not found</span><br></pre></td></tr></table></figure>
+
+<p>What will happen if an executable call b1 and b2 at the same time?</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* main.c */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">b1</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">b2</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    b1();</span><br><span class="line">    b2();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Let’s build and execute the program.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ gcc main.c b1.so b2.so -o main -Xlinker -rpath ./ <span class="comment"># -Xlinker -rpath ./ to tell the linker search in current directory</span></span><br><span class="line">$ ./main</span><br><span class="line">a1.c</span><br><span class="line">a1.c</span><br></pre></td></tr></table></figure>
+
+<p>Why do we see two times a1.c? Let’s check if a2.so is loaded.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">./main &amp;</span><br><span class="line">[1] 32265</span><br><span class="line"></span><br><span class="line">$ cat /proc/32265/maps</span><br><span class="line">55b82d609000-55b82d60a000 r-xp 00000000 08:01 1183287                    ./main</span><br><span class="line">55b82d809000-55b82d80a000 r--p 00000000 08:01 1183287                    ./main</span><br><span class="line">55b82d80a000-55b82d80b000 rw-p 00001000 08:01 1183287                    ./main</span><br><span class="line">55b82d9a7000-55b82d9c8000 rw-p 00000000 00:00 0                          [heap]</span><br><span class="line">7f167dbdf000-7f167dbe0000 r-xp 00000000 08:01 1183207                    ./a2.so</span><br><span class="line">7f167dbe0000-7f167dddf000 ---p 00001000 08:01 1183207                    ./a2.so</span><br><span class="line">7f167dddf000-7f167dde0000 r--p 00000000 08:01 1183207                    ./a2.so</span><br><span class="line">7f167dde0000-7f167dde1000 rw-p 00001000 08:01 1183207                    ./a2.so</span><br><span class="line">7f167dde1000-7f167dde2000 r-xp 00000000 08:01 1183206                    ./a1.so</span><br><span class="line">7f167dde2000-7f167dfe1000 ---p 00001000 08:01 1183206                    ./a1.so</span><br><span class="line">7f167dfe1000-7f167dfe2000 r--p 00000000 08:01 1183206                    ./a1.so</span><br><span class="line">7f167dfe2000-7f167dfe3000 rw-p 00001000 08:01 1183206                    ./a1.so</span><br><span class="line">7f167dfe3000-7f167e1ca000 r-xp 00000000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7f167e1ca000-7f167e3ca000 ---p 001e7000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7f167e3ca000-7f167e3ce000 r--p 001e7000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7f167e3ce000-7f167e3d0000 rw-p 001eb000 08:01 137597                     /lib/x86_64-linux-gnu/libc-2.27.so</span><br><span class="line">7f167e3d0000-7f167e3d4000 rw-p 00000000 00:00 0 </span><br><span class="line">7f167e3d4000-7f167e3d5000 r-xp 00000000 08:01 1183241                    ./b2.so</span><br><span class="line">7f167e3d5000-7f167e5d4000 ---p 00001000 08:01 1183241                    ./b2.so</span><br><span class="line">7f167e5d4000-7f167e5d5000 r--p 00000000 08:01 1183241                    ./b2.so</span><br><span class="line">7f167e5d5000-7f167e5d6000 rw-p 00001000 08:01 1183241                    ./b2.so</span><br><span class="line">7f167e5d6000-7f167e5d7000 r-xp 00000000 08:01 1183208                    ./b1.so</span><br><span class="line">7f167e5d7000-7f167e7d6000 ---p 00001000 08:01 1183208                    ./b1.so</span><br><span class="line">7f167e7d6000-7f167e7d7000 r--p 00000000 08:01 1183208                    ./b1.so</span><br><span class="line">7f167e7d7000-7f167e7d8000 rw-p 00001000 08:01 1183208                    ./b1.so</span><br><span class="line">7f167e7d8000-7f167e7ff000 r-xp 00000000 08:01 137569                     /lib/x86_64-linux-gnu/ld-2.27.so</span><br><span class="line">7f167e9e1000-7f167e9e3000 rw-p 00000000 00:00 0 </span><br><span class="line">7f167e9fd000-7f167e9ff000 rw-p 00000000 00:00 0 </span><br><span class="line">7f167e9ff000-7f167ea00000 r--p 00027000 08:01 137569                     /lib/x86_64-linux-gnu/ld-2.27.so</span><br><span class="line">7f167ea00000-7f167ea01000 rw-p 00028000 08:01 137569                     /lib/x86_64-linux-gnu/ld-2.27.so</span><br><span class="line">7f167ea01000-7f167ea02000 rw-p 00000000 00:00 0 </span><br><span class="line">7ffe6f323000-7ffe6f344000 rw-p 00000000 00:00 0                          [stack]</span><br><span class="line">7ffe6f3d6000-7ffe6f3d9000 r--p 00000000 00:00 0                          [vvar]</span><br><span class="line">7ffe6f3d9000-7ffe6f3da000 r-xp 00000000 00:00 0                          [vdso]</span><br><span class="line">ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]</span><br></pre></td></tr></table></figure>
+
+<p>From the address space information of the application, both a1.so and a2.so are loaded and the symbols will be loaded into the global symbol table. It seems the function in a2.c is overwritten by the one in a1.c. </p>
+<p>This condition is called <strong>Global Symbol Interpose</strong>. The Linux dynamic linker defines such rule: <strong>If a symbol needs to be added to the Global Symbol Table, if the same symbol name already exists, the symbol comes later will be ignored.</strong> When a1.so is loaded, a() is added to the global symbol table, when a2.so is loaded, the linker finds there is already a symbol called a(), then the a() in a2.so will be ignored. That’s why we see two times “a1.c” in the print message. You can try <code>gcc main.c b2.so b1.so -o main -Xlinker -rpath ./</code> and you will find the print message will be two times “a2.c”.</p>
+<p>This is something we need to take care of when creating shared libraries.</p>
+<h4 id="Global-Symbol-Interpose-happens-with-PIC"><a href="#Global-Symbol-Interpose-happens-with-PIC" class="headerlink" title="Global Symbol Interpose happens with PIC"></a>Global Symbol Interpose happens with PIC</h4><p>In the previous example “bar.c”, we may have a similar problem. The foo cannot be treated as an inner-module call, because it may be replaced by other functions with the same name. The compiler can only treat it as an inter-module symbol, foo will be replaced, the dynamic linker only needs to update ‘.got.plt’ and won’t affect shared code. One way to solve this problem is to define foo as static.</p>
+<h4 id="Hide-Your-Symbols"><a href="#Hide-Your-Symbols" class="headerlink" title="Hide Your Symbols"></a>Hide Your Symbols</h4><p>One way to avoid this is to use “<strong>attribute</strong>((visibility(“hidden”)))” for certain symbol, then symbol in application won’t overwrite the one in the shared object.</p>
+<p>Below is a piece of document from <a href="https://www.gnu.org/software/gnulib/manual/html_node/Exported-Symbols-of-Shared-Libraries.html" target="_blank" rel="noopener">GUN library manual - 16.2 Controlling the Exported Symbols of Shared Libraries</a>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">It allows the compiler to generate better code. Within a shared library, a call to a <span class="keyword">function</span> that is a global symbol costs a “call” instruction to a code location <span class="keyword">in</span> the so-called PLT (procedure linkage table) <span class="built_in">which</span> contains a “jump” instruction to the actual <span class="keyword">function</span>’s code. (This is needed so that the <span class="keyword">function</span> can be overridden, <span class="keyword">for</span> example by a <span class="keyword">function</span> with the same name <span class="keyword">in</span> the executable or <span class="keyword">in</span> a shared library interposed with LD_PRELOAD.) Whereas a call to a <span class="keyword">function</span> <span class="keyword">for</span> <span class="built_in">which</span> the compiler can assume that it is <span class="keyword">in</span> the same shared library is just a direct “call” instructions. Similarly <span class="keyword">for</span> variables: A reference to a global variable fetches a pointer <span class="keyword">in</span> the so-called GOT (global offset table); this is a pointer to the variable’s memory. So the code to access it is two memory load instructions. Whereas <span class="keyword">for</span> a variable <span class="built_in">which</span> is known to reside <span class="keyword">in</span> the same shared library, it is just a direct memory access: one memory load instruction.</span><br></pre></td></tr></table></figure>
+
+<p>From this we can conclude that the symbols marked as hidden, are treated as interval symbol by the compiler, which is inner-module call/data. There are more benefits about <code>visibility control</code> and it’s <a href="https://gcc.gnu.org/onlinedocs/gcc/Code-Gen-Options.html" target="_blank" rel="noopener">recommended by GUN</a> when created shared library. </p>
+<p>One simple way to do this is:</p>
+<ol>
+<li>Add option <code>-fvisibility=hidden</code> when building the shared object. This will mark all the symbols without visibility attribute.</li>
+<li>Mark all symbols need to be exported as extern, or decorate it with ‘<strong>attribute</strong>((visibility(“default”)))’, so only the symbols we want to export can be seen by external application.</li>
+</ol>
+<h3 id="Relocation-and-Initialization"><a href="#Relocation-and-Initialization" class="headerlink" title="Relocation and Initialization"></a>Relocation and Initialization</h3><p>After the steps above, the dynamic linker will start to go through all relocation tables in each target. Change the entries need relocation in GOT/PLT. It’s quite easy since the linker already gets the global symbol table.</p>
+<p>Then the dynamic linker will also execute ‘.init’ section as its last step. The system will take over to start the application.</p>
+<h2 id="Other"><a href="#Other" class="headerlink" title="Other"></a>Other</h2><p>Shared library <a href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html" target="_blank" rel="noopener">How to</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linker/" rel="tag"># Linker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/01/Static-Linking/" rel="prev" title="Static Linking">
+      <i class="fa fa-chevron-left"></i> Static Linking
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/05/Git-Cheat-Sheet/" rel="next" title="Git Cheat Sheet">
+      Git Cheat Sheet <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Start-with-Example"><span class="nav-number">1.</span> <span class="nav-text">Start with Example</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Address-space-layout-of-the-application"><span class="nav-number">1.1.</span> <span class="nav-text">Address space layout of the application</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Position-independent-Code"><span class="nav-number">2.</span> <span class="nav-text">Position independent Code</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Load-Time-Relocation"><span class="nav-number">2.1.</span> <span class="nav-text">Load Time Relocation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fPIC"><span class="nav-number">2.2.</span> <span class="nav-text">fPIC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Inter-module-call"><span class="nav-number">2.2.1.</span> <span class="nav-text">Inter module call</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Inner-module-data-access"><span class="nav-number">2.2.2.</span> <span class="nav-text">Inner module data access</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Inter-module-data-access"><span class="nav-number">2.2.3.</span> <span class="nav-text">Inter module data access</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Inter-module-call-1"><span class="nav-number">2.2.4.</span> <span class="nav-text">Inter module call</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PIC-summary"><span class="nav-number">2.2.5.</span> <span class="nav-text">PIC summary</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Global-Variable-in-Shared-Object"><span class="nav-number">2.2.6.</span> <span class="nav-text">Global Variable in Shared Object</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lazy-binding-PLT"><span class="nav-number">2.3.</span> <span class="nav-text">Lazy binding (PLT)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Related-Structures"><span class="nav-number">2.4.</span> <span class="nav-text">Related Structures</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#“-interp”-section"><span class="nav-number">2.4.1.</span> <span class="nav-text">“.interp” section</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#“-dynamic”-section"><span class="nav-number">2.4.2.</span> <span class="nav-text">“.dynamic” section</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic-symbol-Table"><span class="nav-number">2.4.3.</span> <span class="nav-text">Dynamic symbol Table</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Relocation-Table"><span class="nav-number">2.4.4.</span> <span class="nav-text">Relocation Table</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Steps-in-dynamic-linking"><span class="nav-number">3.</span> <span class="nav-text">Steps in dynamic linking</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Bootstrap"><span class="nav-number">3.1.</span> <span class="nav-text">Bootstrap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Load-shared-objects"><span class="nav-number">3.2.</span> <span class="nav-text">Load shared objects</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#symbol-priority"><span class="nav-number">3.2.1.</span> <span class="nav-text">symbol priority</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Global-Symbol-Interpose-happens-with-PIC"><span class="nav-number">3.2.2.</span> <span class="nav-text">Global Symbol Interpose happens with PIC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hide-Your-Symbols"><span class="nav-number">3.2.3.</span> <span class="nav-text">Hide Your Symbols</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocation-and-Initialization"><span class="nav-number">3.3.</span> <span class="nav-text">Relocation and Initialization</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Other"><span class="nav-number">4.</span> <span class="nav-text">Other</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Bo Han</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/hanbo1990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;hanbo1990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hanbo1990@gmail.com" title="E-Mail → mailto:hanbo1990@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/hanbo1990/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;hanbo1990&#x2F;" rel="noopener" target="_blank"><i class="fa fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bo Han</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

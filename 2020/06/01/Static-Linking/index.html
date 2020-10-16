@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"hanbo1990.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"MNU53WUW1V","apiKey":"9683ae70dc183856fd122d6ff742e808","indexName":"bo_blog","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Based on the introduction to ELF, we already got some basic knowledge about ELF files. The following question is: If we have 2 target files, how can we link them together into a single executable? Wha">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Static Linking">
+<meta property="og:url" content="https://hanbo1990.com/2020/06/01/Static-Linking/index.html">
+<meta property="og:site_name" content="Bo Han&#39;s Blog">
+<meta property="og:description" content="Based on the introduction to ELF, we already got some basic knowledge about ELF files. The following question is: If we have 2 target files, how can we link them together into a single executable? Wha">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hanbo1990.com/images/link/static_link.png">
+<meta property="article:published_time" content="2020-06-01T17:03:33.000Z">
+<meta property="article:modified_time" content="2020-09-08T20:07:41.036Z">
+<meta property="article:author" content="Bo Han">
+<meta property="article:tag" content="Linker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hanbo1990.com/images/link/static_link.png">
+
+<link rel="canonical" href="https://hanbo1990.com/2020/06/01/Static-Linking/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Static Linking | Bo Han's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Bo Han's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://hanbo1990.com/2020/06/01/Static-Linking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Bo Han">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Bo Han's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Static Linking
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-06-01 19:03:33" itemprop="dateCreated datePublished" datetime="2020-06-01T19:03:33+02:00">2020-06-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-09-08 22:07:41" itemprop="dateModified" datetime="2020-09-08T22:07:41+02:00">2020-09-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/build-system/" itemprop="url" rel="index"><span itemprop="name">build system</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Based on the <a href="https://hanbo1990.com/2020/06/01/What-is-Target-File/">introduction to ELF</a>, we already got some basic knowledge about ELF files. The following question is: If we have 2 target files, how can we link them together into a single executable? What happens during the link process?</p>
+<a id="more"></a>
+
+<h2 id="Start-with-example"><a href="#Start-with-example" class="headerlink" title="Start with example"></a>Start with example</h2><p>We have a.c and b.c.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* a.c */</span></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">int</span> shared;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">100</span>;</span><br><span class="line">    swap(&amp;a, &amp;shared);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* b.c */</span></span><br><span class="line"><span class="keyword">int</span> shared = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span>* a, <span class="keyword">int</span>* b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    *a ^= *b ^= a* ^= *b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -c a.c b.c</span><br></pre></td></tr></table></figure>
+<p>After compilation, we get ‘a.o’ and ‘b.o’. ‘b.c’ defines two global symbol ‘shared’ and ‘swap’. ‘a.c’ defines one global symbol ‘main’. ‘a.c’ is referencing to the global symbols defined in ‘b.c’. Now what we need to do is linking ‘a.o’ and ‘b.o’ together to an executable ‘ab’.</p>
+<h3 id="combining-similar-sections"><a href="#combining-similar-sections" class="headerlink" title="combining similar sections"></a>combining similar sections</h3><p><img src="/images/link/static_link.png" alt="Link combining"></p>
+<p>As shown in the image, similar sections are combined together to make an output file. The ‘.bss’ section does not occupy file space, but linker will assign space when the application is loaded. What does ‘assign space’ mean here?</p>
+<p>Linker assign address and space for the target file. Address and space have two meanings: One is space in the generated executable, the other is virtual memory address when the application is loaded. For sections like ‘.data’ and ‘.text’, they are given address and space in both file and virtual address space. For section BSS, it is only assigned space in the virtual address space because it does not have any content in the file. The following part will focus on virtual address space, which is related to how linker calculate address.</p>
+<p>Linker normally uses two-pass linking method. </p>
+<ol>
+<li><strong>Assign space and address</strong>  Linker will scan all target files to get the length, attribute and location of all sections, combine them. All the symbols will be gathered together to get a global symbol table.</li>
+<li><strong>Symbol resolution and relocation</strong>  With all information from step one, linker will resolve and relocate symbols, adjust addresses in the code.</li>
+</ol>
+<p>Let’s link a.o and b.o using gcc (<a href="https://books.google.nl/books?id=G0C7DwAAQBAJ&pg=PA74&lpg=PA74&dq=ld+__stack_chk_fail&source=bl&ots=B-h_9g_wJ4&sig=ACfU3U3hNQtpJoIzBI2isBTySe1YD0ZCfw&hl=en&sa=X&ved=2ahUKEwiH1OSHtOPpAhWJxqQKHTzvCmIQ6AEwAXoECAsQAQ#v=onepage&q=ld%20__stack_chk_fail&f=false" target="_blank" rel="noopener">why we don’t use ld?</a>).</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc a.o b.o -o ab</span><br></pre></td></tr></table></figure>
+
+<p>Checking the content using <strong>objdump</strong>, you will find similar contents are moved together. Gcc add extra contents in the sections as well. For example you can find more function inside ab.</p>
+<h3 id="Relocation"><a href="#Relocation" class="headerlink" title="Relocation"></a>Relocation</h3><p>How does linker know what symbols need to be adjusted? In the ELF file, we have a section called Relocation Table. If we have places in ‘.text’ needs relocation, we will have ‘.rela.text’ containing the relocation table. Same for ‘.data’ section, we may have ‘.rela.data’.</p>
+<p>We can use ‘objdump -r’ to check the table inside target files.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ objdump -r a.o</span><br><span class="line"></span><br><span class="line">a.o:     file format elf64-x86-64</span><br><span class="line"></span><br><span class="line">RELOCATION RECORDS FOR [.text]:</span><br><span class="line">OFFSET           TYPE              VALUE </span><br><span class="line">0000000000000025 R_X86_64_PC32     shared-0x0000000000000004</span><br><span class="line">0000000000000032 R_X86_64_PLT32    swap-0x0000000000000004</span><br><span class="line">000000000000004b R_X86_64_PLT32    __stack_chk_fail-0x0000000000000004</span><br></pre></td></tr></table></figure>
+
+<p>We can find the relocation entry defined in ‘a.c’, ‘swap’ and ‘shared’. The linker will replace the address of these 2 entries based on the type. We can see at offset 25, 32 of function main, the address of the symbols are left empty but later replaced in the executable after linking process. We won’t go deep into how linker changes address based on types. The key point here is relocation happens and the linker replaces symbol address based on the symbol table, the address is generated based on the relocation type.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ objdump -x -d -h a.o</span><br><span class="line"></span><br><span class="line">0000000000000000 &lt;main&gt;:</span><br><span class="line">   0:   55                      push   %rbp</span><br><span class="line">   1:   48 89 e5                mov    %rsp,%rbp</span><br><span class="line">   4:   48 83 ec 10             sub    <span class="variable">$0x10</span>,%rsp</span><br><span class="line">   8:   64 48 8b 04 25 28 00    mov    %fs:0x28,%rax</span><br><span class="line">   f:   00 00 </span><br><span class="line">  11:   48 89 45 f8             mov    %rax,-0x8(%rbp)</span><br><span class="line">  15:   31 c0                   xor    %eax,%eax</span><br><span class="line">  17:   c7 45 f4 64 00 00 00    movl   <span class="variable">$0x64</span>,-0xc(%rbp)</span><br><span class="line">  1e:   48 8d 45 f4             lea    -0xc(%rbp),%rax</span><br><span class="line">  22:   48 8d 35 00 00 00 00    lea    0x0(%rip),%rsi        <span class="comment"># look at here</span></span><br><span class="line">                        25: R_X86_64_PC32       shared-0x4</span><br><span class="line">  29:   48 89 c7                mov    %rax,%rdi</span><br><span class="line">  2c:   b8 00 00 00 00          mov    <span class="variable">$0x0</span>,%eax</span><br><span class="line">  31:   e8 00 00 00 00          callq  36 &lt;main+0x36&gt;        <span class="comment"># look at here</span></span><br><span class="line">                        32: R_X86_64_PLT32      swap-0x4</span><br><span class="line">  36:   b8 00 00 00 00          mov    <span class="variable">$0x0</span>,%eax</span><br><span class="line">  3b:   48 8b 55 f8             mov    -0x8(%rbp),%rdx</span><br><span class="line">  3f:   64 48 33 14 25 28 00    xor    %fs:0x28,%rdx</span><br><span class="line">  46:   00 00 </span><br><span class="line">  48:   74 05                   je     4f &lt;main+0x4f&gt;</span><br><span class="line">  4a:   e8 00 00 00 00          callq  4f &lt;main+0x4f&gt;</span><br><span class="line">                        4b: R_X86_64_PLT32      __stack_chk_fail-0x4</span><br><span class="line">  4f:   c9                      leaveq </span><br><span class="line">  50:   c3                      retq</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">$ objdump -x -d -h ab</span><br><span class="line"></span><br><span class="line">000000000000066a &lt;main&gt;:</span><br><span class="line"> 66a:   55                      push   %rbp</span><br><span class="line"> 66b:   48 89 e5                mov    %rsp,%rbp</span><br><span class="line"> 66e:   48 83 ec 10             sub    <span class="variable">$0x10</span>,%rsp</span><br><span class="line"> 672:   64 48 8b 04 25 28 00    mov    %fs:0x28,%rax</span><br><span class="line"> 679:   00 00 </span><br><span class="line"> 67b:   48 89 45 f8             mov    %rax,-0x8(%rbp)</span><br><span class="line"> 67f:   31 c0                   xor    %eax,%eax</span><br><span class="line"> 681:   c7 45 f4 64 00 00 00    movl   <span class="variable">$0x64</span>,-0xc(%rbp)</span><br><span class="line"> 688:   48 8d 45 f4             lea    -0xc(%rbp),%rax</span><br><span class="line"> 68c:   48 8d 35 7d 09 20 00    lea    0x20097d(%rip),%rsi      <span class="comment"># look at here</span></span><br><span class="line"> 693:   48 89 c7                mov    %rax,%rdi</span><br><span class="line"> 696:   b8 00 00 00 00          mov    <span class="variable">$0x0</span>,%eax</span><br><span class="line"> 69b:   e8 1b 00 00 00          callq  6bb &lt;swap&gt;               <span class="comment"># look at here</span></span><br><span class="line"> 6a0:   b8 00 00 00 00          mov    <span class="variable">$0x0</span>,%eax</span><br><span class="line"> 6a5:   48 8b 55 f8             mov    -0x8(%rbp),%rdx</span><br><span class="line"> 6a9:   64 48 33 14 25 28 00    xor    %fs:0x28,%rdx</span><br><span class="line"> 6b0:   00 00 </span><br><span class="line"> 6b2:   74 05                   je     6b9 &lt;main+0x4f&gt;</span><br><span class="line"> 6b4:   e8 87 fe ff ff          callq  540 &lt;__stack_chk_fail@plt&gt;</span><br><span class="line"> 6b9:   c9                      leaveq </span><br><span class="line"> 6ba:   c3                      retq</span><br></pre></td></tr></table></figure>
+
+<h3 id="Symbol-Resolution"><a href="#Symbol-Resolution" class="headerlink" title="Symbol Resolution"></a>Symbol Resolution</h3><p>if we link ‘a.o’ without ‘b.o’, link process will fail because symbols cannot be found.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ gcc a.o</span><br><span class="line"></span><br><span class="line">a.o: In <span class="keyword">function</span> `main<span class="string">':</span></span><br><span class="line"><span class="string">a.c:(.text+0x25): undefined reference to `shared'</span></span><br><span class="line">a.c:(.text+0x32): undefined reference to `swap<span class="string">'</span></span><br><span class="line"><span class="string">collect2: error: ld returned 1 exit status</span></span><br></pre></td></tr></table></figure>
+
+<p>From the previous section, we can understand why this happens. Relocation happens with symbol resolution, each relocation entry is a reference to a symbol. When the linker does a relocation of certain symbol, it need to determine the target address of the symbol. At this point, linker will search through the global symbol table (contains symbols from different target files) to find the required symbol. Normally, after linker scan all target files, all symbols required in the build should be inside the global symbol table. Otherwise above error will happen.</p>
+<h3 id="COMMON-block"><a href="#COMMON-block" class="headerlink" title="COMMON block"></a>COMMON block</h3><p>The weak symbol allows multiple symbols with same name exist in the system. Linker does not support recording symbol type. What will happen if multiple symbols have different types are defined? We have following conditions:</p>
+<ol>
+<li>2 or more strong symbols with different types.</li>
+<li>1 strong symbol and server weak symbols with different types.</li>
+<li>2 or more weak symbols with different types.</li>
+</ol>
+<p>For the first case, nothing need to be done, linker will report multiple definition error. For the second case, strong symbol will be used. And for the last case, the weak symbol with biggest size will be used.</p>
+<p>Now we come to the question, why uninitialized global variable has not space in BSS section, and the compiler tag it as COMMON symbol? The reason is the compiler does not know the size of this variable because other weak symbol with same name may exist. The size can only be determined during the link process, which will assign space for this variable. So finally the uninitialized global variable belongs to the BSS section.</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linker/" rel="tag"># Linker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/01/What-is-Target-File/" rel="prev" title="What is a Target File">
+      <i class="fa fa-chevron-left"></i> What is a Target File
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/03/Dynamic-Linking/" rel="next" title="Dynamic Linking">
+      Dynamic Linking <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Start-with-example"><span class="nav-number">1.</span> <span class="nav-text">Start with example</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#combining-similar-sections"><span class="nav-number">1.1.</span> <span class="nav-text">combining similar sections</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Relocation"><span class="nav-number">1.2.</span> <span class="nav-text">Relocation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Symbol-Resolution"><span class="nav-number">1.3.</span> <span class="nav-text">Symbol Resolution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#COMMON-block"><span class="nav-number">1.4.</span> <span class="nav-text">COMMON block</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Bo Han</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/hanbo1990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;hanbo1990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:hanbo1990@gmail.com" title="E-Mail → mailto:hanbo1990@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/hanbo1990/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;hanbo1990&#x2F;" rel="noopener" target="_blank"><i class="fa fa-linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bo Han</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
