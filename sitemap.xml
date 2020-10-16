@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://hanbo1990.com/2020/06/05/Git-Cheat-Sheet/</loc>
+    
+    <lastmod>2020-10-16T15:59:30.157Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://hanbo1990.com/2020/10/16/use-section-to-manage-init/</loc>
     
     <lastmod>2020-10-16T15:22:15.543Z</lastmod>
@@ -110,13 +117,6 @@
     <loc>https://hanbo1990.com/2020/10/09/how-to/</loc>
     
     <lastmod>2020-10-16T07:46:21.484Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://hanbo1990.com/2020/06/05/Git-Cheat-Sheet/</loc>
-    
-    <lastmod>2020-10-16T07:45:55.916Z</lastmod>
     
   </url>
   
